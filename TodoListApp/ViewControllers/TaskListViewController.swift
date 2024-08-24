@@ -6,9 +6,7 @@
 //
 
 import UIKit
-protocol NewTaskViewControllerDelegate: AnyObject {
-    func reloadData()
-}
+
 
 final class TaskListViewController: UITableViewController {
     
@@ -26,9 +24,7 @@ final class TaskListViewController: UITableViewController {
     }
 
     @objc private func addNewTask() {
-        let newTaskVC = NewTaskViewController()
-        newTaskVC.delegate = self
-        present(newTaskVC, animated: true)
+        showAlert(withTitle: "Добавить задание", andMessage: "Описание")
     }
     // MARK: - UITableViewDataSource
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -55,14 +51,35 @@ final class TaskListViewController: UITableViewController {
         }
  
     }
-}
-    // MARK: - NewTaskViewControllerdelegate
-extension TaskListViewController: NewTaskViewControllerDelegate {
-    func reloadData() {
-        fetchData()
-        tableView.reloadData()
+    
+    private func showAlert(withTitle title: String, andMessage message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        let saveAction = UIAlertAction(title: "Save", style: .default) { [unowned self] _ in
+            guard let task = alert.textFields?.first?.text, !task.isEmpty else { return }
+            saveTask(task)
+        }
+        let cancelAction = UIAlertAction(title: "Cancel", style: .destructive)
+        alert.addAction(saveAction)
+        alert.addAction(cancelAction)
+        alert.addTextField { textField in
+            textField.placeholder = "New task"
+        }
+        present(alert, animated: true)
+    }
+    
+    private func saveTask(_ taskName: String) {
+        guard let appDelegate = (UIApplication.shared.delegate as? AppDelegate) else { return }
+        let task = ToDoTask(context: appDelegate.persistentContainer.viewContext)
+        task.title = taskName
+        taskList.append(task)
+        
+        let indexPath = IndexPath(row: taskList.count - 1, section: 0)
+        tableView.insertRows(at: [indexPath], with: .automatic)
+        appDelegate.saveContext()
     }
 }
+
+
     //MARK: - Setup UI
 private extension TaskListViewController {
     func setupNavigationBar() {
