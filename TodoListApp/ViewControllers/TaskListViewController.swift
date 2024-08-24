@@ -19,8 +19,6 @@ final class TaskListViewController: UITableViewController {
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellID)
         setupNavigationBar()
         fetchData()
-        tableView.delegate = self
-        tableView.dataSource = self
     }
 
     @objc private func addNewTask() {
